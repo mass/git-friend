@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" ng-app="git-friend">
+<head>
+  <meta charset="utf-8">
+  <title>git-friend</title>
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+  <link rel="stylesheet" href="main.css">
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/angular/angular.js"></script>
+</head>
+<body ng-controller="GitFriendController">
+
+<div class="container">
+  <h1>git-friend</h1>
+
+  <a href="https://github.com/mass/git-friend"><img style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
+  <form>
+    <div id="search-bar" class="input-group input-group-lg">
+      <input type="text" class="form-control">
+
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button">Search!</button>
+      </span>
+    </div>
+  </form>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <img class="img-responsive" ng-src="{{ user.avatar_url }}"/>
+        </div>
+        <div class="panel-footer">
+          <strong>{{ user.name }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-9">
+      <h2><a target="_blank" ng-href="https://github.com/stars/{{ user.login }}">Your Starred Repositories</a></h2>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3" ng-repeat="star in user.stars">
+            <div class="starred well">
+              <a target="_blank" ng-href="{{ star.html_url }}">{{ star.full_name }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="bower_components/lodash/dist/lodash.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

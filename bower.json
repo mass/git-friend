@@ -1,0 +1,21 @@
+{
+  "name": "git-friend",
+  "version": "0.0.0",
+  "authors": [
+    "Andrew Mass <amass1212@gmail.com>"
+  ],
+  "description": "Entry for the GitHub Data Challenge. Finds similar coders for GitHub users.",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.2.20",
+    "bootstrap": "~3.2.0"
+  }
+}
