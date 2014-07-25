@@ -1,8 +1,25 @@
-.container {
-  width: 90%;
+@import "bower_components/bootstrap/less/bootstrap.less";
+
+@accent: @btn-danger-bg;
+
+body {
+  background: @gray-lighter;
 }
 
-#search-bar {
+.header {
+  color: @accent;
+  font-weight: bold;
+  font-size: 50px;
+  text-align: center;
+}
+
+.subheader {
+  color: @gray-dark;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.search-bar {
   width: 50%;
   margin: 50px auto;
 }
