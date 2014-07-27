@@ -1,0 +1,23 @@
+{
+  "name": "git-friend",
+  "version": "0.1.0",
+  "description": "Entry for the GitHub Data Challenge. Finds similar coders for GitHub users.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mass/git-friend.git"
+  },
+  "author": "Andrew Mass <amass1212@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/mass/git-friend/issues"
+  },
+  "dependencies": {
+    "express": "~4.7.0",
+    "ejs": "~1.0.0"
+  }
+}
