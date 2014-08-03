@@ -117,6 +117,50 @@ var getStarredPage = function(stars, pages, username, page, token, response, suc
   });
 };
 
+app.get('/stargazers/:org/:repo', function(request, response) {
+  var stargazers = [];
+  var token = request.session ? request.session.token : null;
+  var full_name = request.params.org + "/" + request.params.repo;
+  getStargazersPage(stargazers, 1, full_name, 1, token, response, function(result) {
+    response.send(result);
+  });
+});
+
+var getStargazersPage = function(stargazers, pages, reponame, page, token, response, successCallback) {
+  fetchData('/repos/' + reponame + '/stargazers?page=' + page, token, function(result) {
+    if (result) {
+      if (result.status == 200) {
+        if (result.headers.link) {
+          var links = result.headers.link.replace(/ /g, '');
+          pages = links.substr(links.indexOf('rel="last"') - 3, 1);
+        }
+
+        stargazers = stargazers.concat(_.map(result.body, function(repo) {
+          return _.pick(repo, 'login');
+        }));
+
+        if (page >= pages) {
+          return successCallback({'stargazers': stargazers, 'remaining': result.headers['x-ratelimit-remaining']});
+        } else {
+          getStargazersPage(stargazers, pages, reponame, page + 1, token, response, successCallback);
+        }
+      } else if (result.status === 403 && result.headers['x-ratelimit-remaining'] === '0') {
+        response.status(result.status);
+        response.send({'status': result.status, 'error': 'rate-limit-exceeded'});
+      } else if (result.status === 401 && result.body.message === 'Bad credentials') {
+        response.status(result.status);
+        response.send({'status': result.status, 'error': 'bad-credentials'});
+      } else {
+        response.status(result.status);
+        response.send({'status': result.status, 'error': 'internal-server-error'})
+      }
+    } else {
+      response.status(500);
+      response.send({'status': 500, 'error': 'internal-server-error'})
+    }
+  });
+};
+
 var fetchData = function(path, token, callback) {
   var options = {
     host: 'api.github.com',
