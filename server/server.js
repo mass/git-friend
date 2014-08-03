@@ -2,8 +2,21 @@ var express = require('express');
 var path = require('path');
 var https = require('https');
 var _ = require('lodash');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var githubOAuth = require('github-oauth')({
+  githubClient: process.env['GITHUB_CLIENT'],
+  githubSecret: process.env['GITHUB_SECRET'],
+  baseURL: 'http://localhost:3000',
+  loginURI: '/login',
+  callbackURI: '/auth',
+  scope: 'none'
+});
 
 var app = express();
+
+app.use(cookieParser('changeme'));
+app.use(session({secret: 'changeme', resave: true, saveUninitialized: true}));
 
 app.set('views', path.join(__dirname, '../client'));
 app.engine('.html', require('ejs').renderFile);
@@ -13,15 +26,43 @@ app.get('/', function(request, response) {
   response.render('index.html');
 });
 
+app.get('/login', function(request, response) {
+  return githubOAuth.login(request, response);
+});
+
+app.get('/auth', function(request, response) {
+  return githubOAuth.callback(request, response);
+});
+
+app.get('/isAuth', function(request, response) {
+  if (!request.session || !request.session.token) {
+    return response.send({'isAuth': false});
+  }
+
+  fetchData('/users/' + request.params.username, request.session.token, function(result) {
+    if (result && result.status === 200) {
+      response.send({'isAuth': true, 'remaining': result.headers['x-ratelimit-remaining']});
+    } else {
+      response.send({'isAuth': false, 'remaining': result.headers['x-ratelimit-remaining']});
+    }
+  });
+});
+
 app.get('/user/:username', function(request, response) {
-  fetchData('/users/' + request.params.username, function(result) {
+  var token = request.session ? request.session.token : null;
+  fetchData('/users/' + request.params.username, token, function(result) {
     if (result) {
       if (result.status === 200) {
         result.body = _.pick(result.body, "avatar_url", "login", "name");
+        result.body.remaining = result.headers['x-ratelimit-remaining'];
         return response.send(result.body);
       } else if (result.status === 403 && result.headers['x-ratelimit-remaining'] === '0') {
         response.status(result.status);
         response.send({'status': result.status, 'error': 'rate-limit-exceeded'});
+      } else if (result.status === 401 && result.body.message === 'Bad credentials') {
+        request.session.token = null;
+        response.status(result.status);
+        response.send({'status': result.status, 'error': 'bad-credentials'});
       } else {
         response.status(result.status);
         response.send({'status': result.status, 'error': 'internal-server-error'})
@@ -35,13 +76,14 @@ app.get('/user/:username', function(request, response) {
 
 app.get('/stars/:username', function(request, response) {
   var stars = [];
-  getStarredPage(stars, 1, request.params.username, 1, response, function(stars) {
-    response.send(stars);
-  });
+  getStarredPage(stars, 1, request.params.username, 1, request.session ? request.session.token : null, response,
+    function(result) {
+      response.send(result);
+    });
 });
 
-var getStarredPage = function(stars, pages, username, page, response, successCallback) {
-  fetchData('/users/' + username + '/starred?page=' + page, function(result) {
+var getStarredPage = function(stars, pages, username, page, token, response, successCallback) {
+  fetchData('/users/' + username + '/starred?page=' + page, token, function(result) {
     if (result) {
       if (result.status == 200) {
         if (result.headers.link) {
@@ -54,13 +96,16 @@ var getStarredPage = function(stars, pages, username, page, response, successCal
         }));
 
         if (page >= pages) {
-          return successCallback(stars);
+          return successCallback({'stars': stars, 'remaining': result.headers['x-ratelimit-remaining']});
         } else {
-          getStarredPage(stars, pages, username, page + 1, response, successCallback);
+          getStarredPage(stars, pages, username, page + 1, token, response, successCallback);
         }
       } else if (result.status === 403 && result.headers['x-ratelimit-remaining'] === '0') {
         response.status(result.status);
         response.send({'status': result.status, 'error': 'rate-limit-exceeded'});
+      } else if (result.status === 401 && result.body.message === 'Bad credentials') {
+        response.status(result.status);
+        response.send({'status': result.status, 'error': 'bad-credentials'});
       } else {
         response.status(result.status);
         response.send({'status': result.status, 'error': 'internal-server-error'})
@@ -72,7 +117,7 @@ var getStarredPage = function(stars, pages, username, page, response, successCal
   });
 };
 
-var fetchData = function(path, callback) {
+var fetchData = function(path, token, callback) {
   var options = {
     host: 'api.github.com',
     port: 443,
@@ -80,6 +125,10 @@ var fetchData = function(path, callback) {
     method: 'GET',
     headers: {'user-agent': 'git-friend'}
   };
+
+  if (token) {
+    options.headers.Authorization = 'token ' + token;
+  }
 
   var req = https.get(options, function(res) {
     var bodyChunks = [];
@@ -99,4 +148,13 @@ var fetchData = function(path, callback) {
 
 var server = app.listen(3000, function() {
   console.log('Listening on port: %d', server.address().port);
+});
+
+githubOAuth.on('error', function(err) {
+  console.error('GitHub login error: ', err);
+});
+
+githubOAuth.on('token', function(token, response) {
+  response.req.session.token = token.access_token;
+  response.redirect('/');
 });

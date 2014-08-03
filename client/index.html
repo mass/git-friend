@@ -43,6 +43,10 @@
           <p>Rate Limit Exceeded</p>
           <small>Please try again later.</small>
         </span>
+        <span ng-switch-when="bad-credentials">
+          <p>Expired Token</p>
+          <small>Please refresh and try again.</small>
+        </span>
         <span ng-switch-when="internal-server-error">
           Internal Server Error
         </span>
@@ -50,6 +54,17 @@
           Error: {{ error }}
         </span>
       </div>
+
+      <div class="login-box" ng-if="!isAuth">
+        <h3>
+          Authenticate to enable more API queries:
+          <a class="btn-auth btn-github large" href="/login">
+            Sign in with <b>GitHub</b>
+          </a>
+        </h3>
+      </div>
+
+      <h3 ng-if="remaining">{{ remaining }}</h3>
 
       <div class="row" ng-if="user.login ">
         <div class="col-md-3 user-data">
