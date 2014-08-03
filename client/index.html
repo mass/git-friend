@@ -1,76 +1,89 @@
 <!doctype html>
 <html lang="en" ng-app="git-friend">
-<head>
-  <meta charset="utf-8">
-  <title>git-friend</title>
-  <link rel="stylesheet" href="/main.css">
-  <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.min.js"></script>
-</head>
-<body ng-controller="GitFriendController">
+  <head>
+    <meta charset="utf-8">
+    <title>git-friend</title>
+    <link rel="stylesheet" href="/main.css">
+    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.min.js"></script>
+  </head>
+  <body ng-controller="GitFriendController">
 
-<a href="https://github.com/mass/git-friend">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-    src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
-    alt="Fork me on GitHub"
-    data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
-</a>
+    <a target="_blank" href="https://github.com/mass/git-friend">
+      <img style="position: absolute; top: 0; right: 0; border: 0; z-index: 999"
+        src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+    </a>
 
-<div class="container-fluid">
-
-  <div class="row">
-    <div class="col-md-12">
-      <h1 class="header">git-friend</h1>
-
-      <h2 class="subheader">Find a GitHub coder who has similar interests and habits as you.</h2>
-
-      <form ng-submit="loadData(form.username)">
-        <div class="row">
-          <div class="col-md-offset-3 col-md-4 form-group">
-            <input type="text" class="form-control input-lg" placeholder="Enter a GitHub username"
-              ng-model="form.username">
-          </div>
-          <div class="col-md-2 form-group">
-            <button class="btn btn-block btn-danger btn-lg" type="submit">Find GitHub Friends!</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="row" ng-if="user.login ">
-    <div class="col-md-3 user-data">
-      <div class="panel panel-default">
-        <div class="panel-body">
-          <a href="https://github.com/{{ user.login }}" target="_blank">
-            <img class="img-responsive" ng-src="{{ user.avatar_url }}"/>
-          </a>
-        </div>
-        <div class="panel-footer">
-          <strong>{{ user.login + ' - ' + user.name }}</strong>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-9">
-      <h2><a target="_blank" ng-href="https://github.com/stars/{{ user.login }}">{{user.stars.length }} Starred
-        Repositories</a></h2>
+    <div class="container-fluid">
 
       <div class="row">
-        <div class="col-md-3" ng-repeat="star in user.stars">
-          <div class="starred well">
-            <p>
-              <a target="_blank" ng-href="{{ star.html_url }}">{{ star.full_name }}</a>
-              <span class="pull-right">{{ star.stargazers_count }} Stars</span>
-            </p>
+        <div class="col-md-12">
+          <h1 class="header">git-friend</h1>
+
+          <h2 class="subheader">Find a GitHub coder who has similar interests and habits as you.</h2>
+
+          <form ng-submit="loadData(form.username)">
+            <div class="row">
+              <div class="col-md-offset-3 col-md-4 form-group">
+                <input type="text" class="form-control input-lg" placeholder="Enter a GitHub username"
+                  ng-model="form.username">
+              </div>
+              <div class="col-md-2 form-group">
+                <button class="btn btn-block btn-danger btn-lg" type="submit">Find GitHub Friends!</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="alert alert-danger" role="alert" ng-if="error" ng-switch on="error">
+        <span ng-switch-when="rate-limit-exceeded">
+          <p>Rate Limit Exceeded</p>
+          <small>Please try again later.</small>
+        </span>
+        <span ng-switch-when="internal-server-error">
+          Internal Server Error
+        </span>
+        <span ng-switch-default>
+          Error: {{ error }}
+        </span>
+      </div>
+
+      <div class="row" ng-if="user.login ">
+        <div class="col-md-3 user-data">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <a href="https://github.com/{{ user.login }}" target="_blank">
+                <img class="img-responsive" ng-src="{{ user.avatar_url }}"/>
+              </a>
+            </div>
+            <div class="panel-footer">
+              <strong>{{ user.login + ' - ' + user.name }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-9">
+          <h2><a target="_blank" ng-href="https://github.com/stars/{{ user.login }}">{{user.stars.length }} Starred
+            Repositories</a></h2>
+
+          <div class="row">
+            <div class="col-md-3" ng-repeat="star in user.stars">
+              <div class="starred well">
+                <p>
+                  <a target="_blank" ng-href="{{ star.html_url }}">{{ star.full_name }}</a>
+                  <span class="pull-right">{{ star.stargazers_count }} Stars</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
-<script src="/app.js"></script>
-</body>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
 </html>
