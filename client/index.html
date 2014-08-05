@@ -41,7 +41,7 @@
       <div class="alert alert-danger" role="alert" ng-if="error" ng-switch on="error">
         <span ng-switch-when="rate-limit-exceeded">
           <p>Rate Limit Exceeded</p>
-          <small>Please try again later.</small>
+          <small>Please authenticate or try again later.</small>
         </span>
         <span ng-switch-when="bad-credentials">
           <p>Expired Token</p>
@@ -86,8 +86,7 @@
             <h2>Git Friends</h2>
 
             <div class="row">
-              <div class="col-md-3" ng-repeat="friend in friends"
-                ng-if="friend.login !== user.login && friend.count > 1">
+              <div class="col-md-3" ng-repeat="friend in friends">
                 <div class="panel panel-default">
                   <div class="panel-body">
                     <p>
@@ -115,8 +114,6 @@
                   <p>
                     <a target="_blank" ng-href="{{ star.html_url }}">{{ star.full_name }}</a>
                     <span class="pull-right">{{ star.stargazers_count }} Stars</span>
-
-                  <div class="" ng-repeat="stargazer in star.stargazers">{{ stargazer.login }}</div>
                   </p>
                 </div>
               </div>

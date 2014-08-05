@@ -36,11 +36,12 @@ angular.module('git-friend', [])
           $scope.remaining = data.remaining;
           $scope.user.stars = _.sortBy(data.stars, 'stargazers_count');
 
-          var starMap = _.indexBy($scope.user.stars, 'full_name')
+          var starMap = _.indexBy($scope.user.stars, 'full_name');
+          var friends = [];
 
           var repoQueries = [];
           _.forEach(starMap, function(repo) {
-            if (repo.stargazers_count < 500) {
+            if (repo.stargazers_count < 5000) {
               repoQueries.push(
                 $http.get('/stargazers/' + repo.full_name)
                   .then(function(result) {
@@ -49,12 +50,11 @@ angular.module('git-friend', [])
                     starMap[repo.full_name].stargazers = starData.stargazers;
 
                     _.forEach(starData.stargazers, function(stargazer) {
-                      if (!_.find($scope.friends, {'login': stargazer.login})) {
-                        $scope.friends.push({'login': stargazer.login, 'count': 1});
+                      if (!_.find(friends, {'login': stargazer.login})) {
+                        friends.push({'login': stargazer.login, 'count': 1});
                       } else {
-                        _.find($scope.friends, {'login': stargazer.login}).count++;
+                        _.find(friends, {'login': stargazer.login}).count++;
                       }
-                      $scope.friends = _.sortBy($scope.friends, 'count').reverse();
                     });
                   }, function(result) {
                     $scope.error = result.data.error;
@@ -64,7 +64,10 @@ angular.module('git-friend', [])
           });
 
           $q.all(repoQueries).then(function() {
-            // Do after all queries finished.
+            _.remove(friends, function(friend) {
+              return friend.login === $scope.user.login;
+            });
+            $scope.friends = _.sortBy(friends, 'count').reverse().slice(0, 8);
           })
         })
         .error(function(data) {
